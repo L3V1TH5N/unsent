@@ -1,6 +1,7 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { NextResponse } from 'next/server'
+import { enqueueAnalysis } from '@/lib/queue'
 import { analyzeLetter } from '@/services/emotion.service'
 import { updateGardenForLetter } from '@/services/garden.service'
 import type { EmotionResult } from '@/services/emotion.service'
@@ -30,11 +31,12 @@ export async function POST(req: Request) {
       content: content.trim(),
       recipientType,
       isPublic: isPublic ?? true,
+      status: 'PENDING',
     },
   })
 
-  // Fire-and-forget emotion analysis + garden update
-  void analyzeAndUpdateGarden(session.user.id, letter.id, content.trim())
+  // Enqueue analysis job (fast)
+  void enqueueAnalysis(letter.id)
 
   return NextResponse.json({ letter }, { status: 201 })
 }

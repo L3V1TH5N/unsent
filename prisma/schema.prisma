@@ -33,10 +33,12 @@ model Letter {
   emotion       String?
   intensity     Float?
   category      String?
+  status        LetterStatus @default(PENDING)
   isPublic      Boolean    @default(true)
   seedId        String?
   seed          Seed?      @relation(fields: [seedId], references: [id])
   reactions     Reaction[]
+  analysisJob   AnalysisJob?
   createdAt     DateTime   @default(now())
 }
 
@@ -79,6 +81,32 @@ enum MatchStatus {
   PENDING
   ACCEPTED
   DECLINED
+}
+
+enum LetterStatus {
+  PENDING
+  ANALYZED
+  FAILED
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+model AnalysisJob {
+  id         String    @id @default(cuid())
+  letterId   String    @unique
+  letter     Letter    @relation(fields: [letterId], references: [id], onDelete: Cascade)
+  status     JobStatus @default(PENDING)
+  attempts   Int       @default(0)
+  lastError  String?
+  scheduledAt DateTime?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
 }
 
 model Message {

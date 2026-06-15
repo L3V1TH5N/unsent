@@ -32,7 +32,8 @@ export default function WritePage() {
   const [content, setContent] = useState('')
   const [isPublic, setIsPublic] = useState(true)
   const [sending, setSending] = useState(false)
-  const [sent, setSent] = useState(false)
+  const [sentId, setSentId] = useState<string | null>(null)
+  const [status, setStatus] = useState<string | null>(null)
   const [wordCount, setWordCount] = useState(0)
 
   useEffect(() => {
@@ -52,21 +53,60 @@ export default function WritePage() {
       })
 
       if (res.ok) {
-        setSent(true)
-        setTimeout(() => router.push('/river'), 2000)
+        const data = await res.json()
+        const id = data?.letter?.id
+        if (id) {
+          setSentId(id)
+          setStatus('QUEUED')
+        } else {
+          setSending(false)
+        }
+      } else {
+        setSending(false)
       }
     } catch (e) {
       setSending(false)
     }
   }
 
-  if (sent) {
+  useEffect(() => {
+    if (!sentId) return
+    let cancelled = false
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/letters/${sentId}`)
+        if (!res.ok) return
+        const json = await res.json()
+        const s = json?.letter?.status
+        if (s && !cancelled) setStatus(s)
+        if (s === 'ANALYZED') {
+          clearInterval(interval)
+          router.push('/river')
+        }
+        if (s === 'FAILED') {
+          clearInterval(interval)
+          // still redirect to river but user may see a different message
+          router.push('/river')
+        }
+      } catch (e) {
+        // ignore transient errors
+      }
+    }, 2000)
+
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [sentId, router])
+
+  if (sentId) {
     return (
       <div className="sent-screen">
         <div className="sent-content">
           <div className="sent-icon">✦</div>
-          <h2 className="sent-title">Your words have been released.</h2>
-          <p className="sent-sub">Taking you to the river&hellip;</p>
+          <h2 className="sent-title">Your words are queued for reflection.</h2>
+          <p className="sent-sub">Status: {status ?? 'QUEUED'}</p>
+          <p className="sent-sub">Taking you to the river when analysis completes…</p>
         </div>
         <style>{sentStyles}</style>
       </div>

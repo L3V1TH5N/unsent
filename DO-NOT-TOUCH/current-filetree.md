@@ -1,9 +1,15 @@
 # File Tree: unsent
 
-**Generated:** 6/15/2026, 9:18:38 AM
+**Generated:** 6/15/2026, 12:50:47 PM
 **Root Path:** `c:\Users\ADMIN\unsent`
 
 ```
+├── DO-NOT-TOUCH
+│   ├── SYSTEM_ANALYSIS.md
+│   ├── Unsent-Prompt.md
+│   ├── current-filetree.md
+│   ├── initial landing page.png
+│   └── snippet
 ├── prisma
 │   ├── migrations
 │   │   ├── 20260615000312_init
@@ -11,6 +17,8 @@
 │   │   ├── 20260615000953_init_with_auth
 │   │   │   └── migration.sql
 │   │   ├── 20260615003000_add_name_to_user
+│   │   │   └── migration.sql
+│   │   ├── 20260615043220_add_analysis_jobs
 │   │   │   └── migration.sql
 │   │   └── migration_lock.toml
 │   ├── prisma.config.ts
@@ -27,7 +35,16 @@
 │   │   │   ├── auth
 │   │   │   │   └── [...nextauth]
 │   │   │   │       └── route.ts
+│   │   │   ├── jobs
+│   │   │   │   ├── cron
+│   │   │   │   │   └── route.ts
+│   │   │   │   └── process
+│   │   │   │       └── route.ts
 │   │   │   ├── letters
+│   │   │   │   ├── [letterId]
+│   │   │   │   │   ├── reactions
+│   │   │   │   │   │   └── route.ts
+│   │   │   │   │   └── route.ts
 │   │   │   │   └── route.ts
 │   │   │   └── matches
 │   │   │       ├── [matchId]
@@ -35,6 +52,7 @@
 │   │   │       │       └── route.ts
 │   │   │       └── route.ts
 │   │   ├── garden
+│   │   │   ├── GardenClient.tsx
 │   │   │   └── page.tsx
 │   │   ├── matches
 │   │   │   ├── [matchId]
@@ -43,6 +61,7 @@
 │   │   │   ├── MatchCard.tsx
 │   │   │   └── page.tsx
 │   │   ├── river
+│   │   │   ├── ReactionButtons.tsx
 │   │   │   └── page.tsx
 │   │   ├── write
 │   │   │   └── page.tsx
@@ -51,9 +70,13 @@
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── generated
+│   ├── img
+│   │   ├── Tab-Logo.png
+│   │   └── Unsent-Logo.png
 │   ├── lib
 │   │   ├── auth.ts
-│   │   └── prisma.ts
+│   │   ├── prisma.ts
+│   │   └── queue.ts
 │   ├── services
 │   │   ├── emotion.service.ts
 │   │   ├── garden.service.ts
@@ -64,14 +87,12 @@
 ├── AGENTS.md
 ├── CLAUDE.md
 ├── README.md
-├── Unsent-Prompt.md
 ├── eslint.config.mjs
 ├── next.config.ts
 ├── package-lock.json
 ├── package.json
 ├── postcss.config.mjs
 ├── prisma.config.ts
-├── snippet
 └── tsconfig.json
 ```
 
