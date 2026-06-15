@@ -1,65 +1,226 @@
-import Image from "next/image";
+import Link from 'next/link'
+import { auth } from '@/lib/auth'
+import { redirect } from 'next/navigation'
 
-export default function Home() {
+const carryingOptions = [
+  { label: 'Something I lost', href: '/write?carrying=lost' },
+  { label: 'Something hurting me', href: '/write?carrying=hurting' },
+  { label: 'Something I miss', href: '/write?carrying=missing' },
+  { label: 'Something I\'m healing from', href: '/write?carrying=healing' },
+  { label: 'Something I never said', href: '/write?carrying=unsaid' },
+]
+
+export default async function LandingPage() {
+  const session = await auth()
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <main className="landing">
+      <div className="paper-drift" aria-hidden="true">
+        <span className="paper-text">
+          &ldquo;I hope you are happy,<br />
+          even if I am no longer<br />
+          part of your life.&rdquo;
+        </span>
+      </div>
+
+      <div className="landing-content">
+        <header className="landing-header">
+          <p className="eyebrow">unsent</p>
+          <h1 className="headline">
+            Some words are too<br />
+            heavy to carry alone.
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="subline">
+            Write what you never sent. Find someone who understands.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+        </header>
+
+        <section className="carrying-section">
+          <p className="carrying-question">What are you carrying today?</p>
+          <div className="carrying-options">
+            {carryingOptions.map((option) => (
+              <Link
+                key={option.href}
+                href={session ? option.href : `/api/auth/signin`}
+                className="carrying-pill"
+              >
+                {option.label}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <footer className="landing-footer">
+          {session ? (
+            <Link href="/river" className="footer-link">
+              Read others&rsquo; letters &rarr;
+            </Link>
+          ) : (
+            <p className="footer-note">
+              Anonymous by default. Your name is never shown.
+            </p>
+          )}
+        </footer>
+      </div>
+
+      <style>{`
+        .landing {
+          min-height: 100vh;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          position: relative;
+          overflow: hidden;
+          padding: 2rem;
+        }
+
+        /* Drifting paper fragment */
+        .paper-drift {
+          position: absolute;
+          top: 8%;
+          right: 5%;
+          width: 200px;
+          padding: 1.5rem;
+          background: white;
+          border: 1px solid var(--mist);
+          border-radius: 2px;
+          box-shadow: 2px 3px 12px rgba(44, 36, 22, 0.06);
+          transform: rotate(3deg);
+          animation: drift 8s ease-in-out infinite;
+          pointer-events: none;
+        }
+
+        .paper-text {
+          font-family: var(--font-display);
+          font-size: 0.8rem;
+          line-height: 1.7;
+          color: var(--ink-light);
+          font-style: italic;
+        }
+
+        @keyframes drift {
+          0%, 100% { transform: rotate(3deg) translateY(0px); }
+          50% { transform: rotate(3deg) translateY(-10px); }
+        }
+
+        /* Main content */
+        .landing-content {
+          max-width: 520px;
+          width: 100%;
+          display: flex;
+          flex-direction: column;
+          gap: 3.5rem;
+          position: relative;
+          z-index: 1;
+        }
+
+        .landing-header {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .eyebrow {
+          font-family: var(--font-body);
+          font-size: 0.75rem;
+          letter-spacing: 0.2em;
+          text-transform: uppercase;
+          color: var(--rose);
+          font-weight: 500;
+        }
+
+        .headline {
+          font-family: var(--font-display);
+          font-size: clamp(2rem, 5vw, 2.75rem);
+          font-weight: 400;
+          line-height: 1.25;
+          color: var(--ink);
+          letter-spacing: -0.01em;
+        }
+
+        .subline {
+          font-family: var(--font-body);
+          font-size: 1rem;
+          color: var(--ink-light);
+          line-height: 1.6;
+          max-width: 380px;
+        }
+
+        /* Carrying section */
+        .carrying-section {
+          display: flex;
+          flex-direction: column;
+          gap: 1.25rem;
+        }
+
+        .carrying-question {
+          font-family: var(--font-display);
+          font-size: 1.05rem;
+          font-style: italic;
+          color: var(--ink-light);
+        }
+
+        .carrying-options {
+          display: flex;
+          flex-direction: column;
+          gap: 0.625rem;
+        }
+
+        .carrying-pill {
+          display: inline-block;
+          padding: 0.75rem 1.25rem;
+          border: 1px solid var(--mist);
+          border-radius: 100px;
+          background: white;
+          font-family: var(--font-body);
+          font-size: 0.9rem;
+          color: var(--ink);
+          text-decoration: none;
+          width: fit-content;
+          transition: border-color 0.2s, background 0.2s, transform 0.15s;
+        }
+
+        .carrying-pill:hover {
+          border-color: var(--rose);
+          background: #FDF8F6;
+          transform: translateX(4px);
+        }
+
+        /* Footer */
+        .landing-footer {
+          padding-top: 0.5rem;
+          border-top: 1px solid var(--mist);
+        }
+
+        .footer-link {
+          font-family: var(--font-body);
+          font-size: 0.875rem;
+          color: var(--sage);
+          text-decoration: none;
+        }
+
+        .footer-link:hover {
+          text-decoration: underline;
+        }
+
+        .footer-note {
+          font-family: var(--font-body);
+          font-size: 0.8rem;
+          color: var(--ink-light);
+          opacity: 0.7;
+        }
+
+        /* Mobile */
+        @media (max-width: 640px) {
+          .paper-drift {
+            display: none;
+          }
+
+          .landing-content {
+            gap: 2.5rem;
+          }
+        }
+      `}</style>
+    </main>
+  )
 }

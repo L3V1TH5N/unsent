@@ -1,0 +1,131 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+model User {
+  id              String    @id @default(cuid())
+  name            String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  anonymousName   String?   @unique
+  createdAt       DateTime  @default(now())
+  letters         Letter[]
+  seeds           Seed[]
+  sentMatches     Match[]   @relation("Requester")
+  receivedMatches Match[]   @relation("Receiver")
+  sentMessages    Message[] @relation("Sender")
+  accounts        Account[]
+  sessions        Session[]
+}
+
+model Letter {
+  id            String     @id @default(cuid())
+  userId        String
+  user          User       @relation(fields: [userId], references: [id])
+  content       String
+  recipientType String
+  emotion       String?
+  intensity     Float?
+  category      String?
+  isPublic      Boolean    @default(true)
+  seedId        String?
+  seed          Seed?      @relation(fields: [seedId], references: [id])
+  reactions     Reaction[]
+  createdAt     DateTime   @default(now())
+}
+
+model Seed {
+  id           String    @id @default(cuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  theme        String
+  stage        Stage     @default(SEED)
+  letterCount  Int       @default(0)
+  letters      Letter[]
+  lastActivity DateTime  @default(now())
+  bloomedAt    DateTime?
+}
+
+enum Stage {
+  SEED
+  SPROUT
+  HEALING
+  BLOOMED
+  STRONG
+}
+
+model Match {
+  id          String      @id @default(cuid())
+  requesterId String
+  requester   User        @relation("Requester", fields: [requesterId], references: [id])
+  receiverId  String
+  receiver    User        @relation("Receiver", fields: [receiverId], references: [id])
+  similarity  Float
+  status      MatchStatus @default(PENDING)
+  messages    Message[]
+  createdAt   DateTime    @default(now())
+}
+
+enum MatchStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  matchId   String
+  match     Match    @relation(fields: [matchId], references: [id])
+  senderId  String
+  sender    User     @relation("Sender", fields: [senderId], references: [id])
+  content   String
+  createdAt DateTime @default(now())
+}
+
+model Reaction {
+  id        String   @id @default(cuid())
+  letterId  String
+  letter    Letter   @relation(fields: [letterId], references: [id])
+  type      String
+  createdAt DateTime @default(now())
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
