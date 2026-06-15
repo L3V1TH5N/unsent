@@ -45,6 +45,9 @@ model Seed {
   userId       String
   user         User      @relation(fields: [userId], references: [id])
   theme        String
+  // ↓ New fields — run: npx prisma migrate dev --name add_seed_category_tags
+  category     String    @default("self_reflection")
+  tags         String[]  @default([])
   stage        Stage     @default(SEED)
   letterCount  Int       @default(0)
   letters      Letter[]

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import ReactionButtons from './ReactionButtons'
 import { prisma } from '@/lib/prisma'
 import { auth } from '@/lib/auth'
 
@@ -74,9 +75,7 @@ export default async function RiverPage() {
               </div>
               <p className="letter-content">{letter.content}</p>
               <div className="letter-reactions">
-                <button className="reaction-btn">I understand</button>
-                <button className="reaction-btn">I felt this</button>
-                <button className="reaction-btn">I hope you&rsquo;re okay</button>
+                <ReactionButtons letterId={letter.id} />
               </div>
             </article>
           ))

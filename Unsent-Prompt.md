@@ -291,7 +291,7 @@ Acceptance
 Healing
 Hope
 
-Feature 4: Emotional Matching System
+# Feature 4: Emotional Matching System
 
 Create a system that connects users based on emotional similarity.
 

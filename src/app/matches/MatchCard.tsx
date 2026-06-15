@@ -1,17 +1,45 @@
 'use client'
+// src/app/matches/MatchCard.tsx
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+
+// Emotion → human-readable phrase shown on the card
+const EMOTION_PHRASES: Record<string, string> = {
+  love:        'love',
+  longing:     'longing',
+  regret:      'regret',
+  sadness:     'sadness',
+  anger:       'anger',
+  forgiveness: 'forgiveness',
+  acceptance:  'acceptance',
+  healing:     'healing',
+  hope:        'hope',
+}
+
+// Similarity score → descriptor
+function similarityLabel(s: number): string {
+  if (s >= 0.85) return 'deeply resonant'
+  if (s >= 0.70) return 'strongly similar'
+  if (s >= 0.55) return 'emotionally close'
+  return 'emotionally similar'
+}
 
 interface Props {
   receiverId: string
   similarity: number
   anonymousName: string | null
+  sharedEmotions: string[]
 }
 
-export default function MatchCard({ receiverId, similarity, anonymousName }: Props) {
+export default function MatchCard({
+  receiverId,
+  similarity,
+  sharedEmotions,
+}: Props) {
   const [connecting, setConnecting] = useState(false)
-  const [connected, setConnected] = useState(false)
+  const [connected, setConnected]   = useState(false)
+  const [hovered, setHovered]       = useState(false)
   const router = useRouter()
 
   async function handleConnect() {
@@ -32,106 +60,129 @@ export default function MatchCard({ receiverId, similarity, anonymousName }: Pro
     }
   }
 
+  const pct = Math.round(similarity * 100)
+  const label = similarityLabel(similarity)
+
+  // Build the shared emotion sentence
+  const sharedText =
+    sharedEmotions.length === 0
+      ? 'a similar emotional weight'
+      : sharedEmotions.length === 1
+      ? `feelings of ${EMOTION_PHRASES[sharedEmotions[0]] ?? sharedEmotions[0]}`
+      : `feelings of ${sharedEmotions
+          .slice(0, 3)
+          .map(e => EMOTION_PHRASES[e] ?? e)
+          .join(' and ')}`
+
   return (
-    <div className="suggestion-card">
-      <div className="suggestion-left">
-        <div className="similarity-ring">
-          <span className="similarity-number">
-            {Math.round(similarity * 100)}%
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        background: 'white',
+        border: `1px solid ${hovered ? '#D4CEC8' : '#EAE6E1'}`,
+        borderRadius: '4px',
+        padding: '1.5rem',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.25rem',
+        transition: 'border-color 0.2s, box-shadow 0.2s',
+        boxShadow: hovered ? '0 4px 20px rgba(0,0,0,0.05)' : 'none',
+      }}
+    >
+      {/* Top row: ring + description */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+
+        {/* Similarity ring */}
+        <div style={{
+          width: '60px',
+          height: '60px',
+          borderRadius: '50%',
+          border: '2px solid #7A9A7E',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          gap: '1px',
+        }}>
+          <span style={{
+            fontFamily: 'var(--font-display)',
+            fontSize: '1rem',
+            color: '#4A6741',
+            lineHeight: 1,
+          }}>
+            {pct}%
           </span>
         </div>
-        <div className="suggestion-info">
-          <p className="suggestion-label">emotional match</p>
-          <p className="suggestion-desc">
-            This person&rsquo;s letters carry a similar emotional weight to yours.
+
+        {/* Label + shared emotions */}
+        <div style={{ flex: 1 }}>
+          <p style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.65rem',
+            textTransform: 'uppercase',
+            letterSpacing: '0.1em',
+            color: '#9A9490',
+            margin: '0 0 0.3rem',
+          }}>
+            {label}
+          </p>
+          <p style={{
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.875rem',
+            color: 'var(--ink)',
+            lineHeight: 1.5,
+            margin: 0,
+          }}>
+            This person carries {sharedText} — much like you do.
           </p>
         </div>
       </div>
-      <button
-        className="connect-btn"
-        onClick={handleConnect}
-        disabled={connecting || connected}
-      >
-        {connected ? 'Connected ✦' : connecting ? 'Connecting...' : 'Begin conversation'}
-      </button>
 
-      <style>{`
-        .suggestion-card {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1.25rem 1.5rem;
-          background: white;
-          border: 1px solid var(--mist);
-          border-radius: 2px;
-          gap: 1rem;
-          flex-wrap: wrap;
-        }
+      {/* Shared emotion tags */}
+      {sharedEmotions.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.4rem' }}>
+          {sharedEmotions.slice(0, 4).map((e) => (
+            <span
+              key={e}
+              style={{
+                padding: '0.2rem 0.65rem',
+                background: '#F5EDEC',
+                borderRadius: '100px',
+                fontFamily: 'var(--font-body)',
+                fontSize: '0.7rem',
+                color: '#9A6052',
+                letterSpacing: '0.03em',
+              }}
+            >
+              {EMOTION_PHRASES[e] ?? e}
+            </span>
+          ))}
+        </div>
+      )}
 
-        .suggestion-left {
-          display: flex;
-          align-items: center;
-          gap: 1rem;
-        }
-
-        .similarity-ring {
-          width: 56px;
-          height: 56px;
-          border-radius: 50%;
-          border: 2px solid var(--sage);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          flex-shrink: 0;
-        }
-
-        .similarity-number {
-          font-family: var(--font-display);
-          font-size: 0.85rem;
-          color: var(--sage);
-        }
-
-        .suggestion-label {
-          font-family: var(--font-body);
-          font-size: 0.7rem;
-          text-transform: uppercase;
-          letter-spacing: 0.1em;
-          color: var(--ink-light);
-          margin-bottom: 0.25rem;
-        }
-
-        .suggestion-desc {
-          font-family: var(--font-body);
-          font-size: 0.825rem;
-          color: var(--ink);
-          line-height: 1.5;
-          max-width: 280px;
-        }
-
-        .connect-btn {
-          padding: 0.6rem 1.25rem;
-          background: transparent;
-          border: 1px solid var(--ink);
-          border-radius: 100px;
-          font-family: var(--font-body);
-          font-size: 0.8rem;
-          color: var(--ink);
-          cursor: pointer;
-          transition: all 0.15s;
-          white-space: nowrap;
-          flex-shrink: 0;
-        }
-
-        .connect-btn:hover:not(:disabled) {
-          background: var(--ink);
-          color: var(--parchment);
-        }
-
-        .connect-btn:disabled {
-          opacity: 0.5;
-          cursor: not-allowed;
-        }
-      `}</style>
+      {/* Connect button */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+        <button
+          onClick={handleConnect}
+          disabled={connecting || connected}
+          style={{
+            padding: '0.55rem 1.25rem',
+            background: connected ? '#4A6741' : 'transparent',
+            border: `1px solid ${connected ? '#4A6741' : 'var(--ink)'}`,
+            borderRadius: '100px',
+            fontFamily: 'var(--font-body)',
+            fontSize: '0.8rem',
+            color: connected ? 'white' : 'var(--ink)',
+            cursor: connecting || connected ? 'not-allowed' : 'pointer',
+            opacity: connecting ? 0.6 : 1,
+            transition: 'all 0.15s',
+          }}
+        >
+          {connected ? 'Connected ✦' : connecting ? 'Connecting…' : 'Begin conversation'}
+        </button>
+      </div>
     </div>
   )
 }
