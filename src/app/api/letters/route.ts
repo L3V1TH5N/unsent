@@ -114,12 +114,12 @@ async function analyzeAndUpdateGarden(
 // Maps recipientType → a meaningful fallback theme instead of always "Unspoken Words"
 function fallbackEmotion(recipientType: string): EmotionResult {
   const map: Record<string, Pick<EmotionResult, 'emotion' | 'seedTheme' | 'category' | 'tags'>> = {
-    'someone i loved':    { emotion: 'longing',     seedTheme: 'Someone I Loved',    category: 'past_relationship', tags: ['love', 'distance'] },
-    'someone i lost':     { emotion: 'sadness',     seedTheme: 'Losing Someone',     category: 'grief',             tags: ['grief', 'loss'] },
-    'my past self':       { emotion: 'regret',      seedTheme: 'Letter to Myself',   category: 'self_reflection',   tags: ['past', 'self'] },
-    'someone i hurt':     { emotion: 'regret',      seedTheme: 'Asking Forgiveness', category: 'self_reflection',   tags: ['guilt', 'sorry'] },
-    'someone i forgive':  { emotion: 'forgiveness', seedTheme: 'Forgiving Someone',  category: 'healing',           tags: ['forgiveness', 'peace'] },
-    'myself':             { emotion: 'healing',     seedTheme: 'Healing With Myself',category: 'self_reflection',   tags: ['self', 'healing'] },
+    'someone_loved':   { emotion: 'longing',     seedTheme: 'Someone I Loved',     category: 'past_relationship', tags: ['love', 'distance'] },
+    'someone_lost':    { emotion: 'sadness',     seedTheme: 'Losing Someone',      category: 'grief',             tags: ['grief', 'loss'] },
+    'past_self':       { emotion: 'regret',      seedTheme: 'Letter to Myself',    category: 'self_reflection',   tags: ['past', 'self'] },
+    'someone_hurt':    { emotion: 'regret',      seedTheme: 'Asking Forgiveness',  category: 'self_reflection',   tags: ['guilt', 'sorry'] },
+    'someone_forgive': { emotion: 'forgiveness', seedTheme: 'Forgiving Someone',   category: 'healing',           tags: ['forgiveness', 'peace'] },
+    'myself':          { emotion: 'healing',     seedTheme: 'Healing With Myself', category: 'self_reflection',   tags: ['self', 'healing'] },
   }
 
   const key = recipientType.toLowerCase()

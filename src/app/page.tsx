@@ -1,224 +1,344 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
+import { prisma } from '@/lib/prisma'
+import LandingScene from '@/components/LandingScene'
 
 const carryingOptions = [
-  { label: 'Something I lost', href: '/write?carrying=lost' },
-  { label: 'Something hurting me', href: '/write?carrying=hurting' },
-  { label: 'Something I miss', href: '/write?carrying=missing' },
-  { label: 'Something I\'m healing from', href: '/write?carrying=healing' },
-  { label: 'Something I never said', href: '/write?carrying=unsaid' },
+  { label: 'Something I lost',           href: '/write?carrying=lost',    icon: '◈' },
+  { label: 'Something hurting me',       href: '/write?carrying=hurting', icon: '◈' },
+  { label: 'Something I miss',           href: '/write?carrying=missing', icon: '◈' },
+  { label: "Something I'm healing from", href: '/write?carrying=healing', icon: '◈' },
+  { label: 'Something I never said',     href: '/write?carrying=unsaid',  icon: '◈' },
 ]
 
 export default async function LandingPage() {
   const session = await auth()
 
+  const letters = await prisma.letter.findMany({
+    where:   { isPublic: true, status: 'ANALYZED' },
+    orderBy: { createdAt: 'desc' },
+    take:    6,
+    select:  { id: true, content: true, recipientType: true, emotion: true, createdAt: true },
+  })
+
+  const serialized = letters.map(l => ({ ...l, createdAt: l.createdAt.toISOString() }))
+
   return (
-    <main className="landing">
-      <div className="paper-drift" aria-hidden="true">
-        <span className="paper-text">
-          &ldquo;I hope you are happy,<br />
-          even if I am no longer<br />
-          part of your life.&rdquo;
-        </span>
-      </div>
+    <main className="root">
+      {/* Living world behind everything */}
+      <LandingScene letters={serialized} />
 
-      <div className="landing-content">
-        <header className="landing-header">
-          <p className="eyebrow">unsent</p>
-          <h1 className="headline">
-            Some words are too<br />
-            heavy to carry alone.
-          </h1>
-          <p className="subline">
-            Write what you never sent. Find someone who understands.
-          </p>
-        </header>
+      {/* UI panel — RPG quest prompt style */}
+      <div className="ui-layer">
+        <div className="quest-panel">
 
-        <section className="carrying-section">
-          <p className="carrying-question">What are you carrying today?</p>
-          <div className="carrying-options">
-            {carryingOptions.map((option) => (
-              <Link
-                key={option.href}
-                href={session ? option.href : `/api/auth/signin`}
-                className="carrying-pill"
-              >
-                {option.label}
-              </Link>
-            ))}
+          {/* Corner ornaments */}
+          <div className="corner tl" aria-hidden="true"/>
+          <div className="corner tr" aria-hidden="true"/>
+          <div className="corner bl" aria-hidden="true"/>
+          <div className="corner br" aria-hidden="true"/>
+
+          {/* Logo */}
+          <div className="panel-logo">
+            <Image src="/img/Unsent-Logo.png" alt="Unsent" width={96} height={30} priority
+              style={{objectFit:'contain', objectPosition:'center', filter:'brightness(0) invert(1)', opacity:0.9}}/>
           </div>
-        </section>
 
-        <footer className="landing-footer">
-          {session ? (
-            <Link href="/river" className="footer-link">
-              Read others&rsquo; letters &rarr;
-            </Link>
-          ) : (
-            <p className="footer-note">
-              Anonymous by default. Your name is never shown.
+          {/* Divider line */}
+          <div className="panel-rule" aria-hidden="true">
+            <span className="rule-gem">◆</span>
+          </div>
+
+          {/* Headline */}
+          <div className="panel-headline">
+            <p className="panel-eyebrow">a place for words you never sent</p>
+            <h1 className="panel-title">
+              Some words are too<br/>heavy to carry alone.
+            </h1>
+          </div>
+
+          {/* Quest prompt */}
+          <div className="panel-quest">
+            <p className="quest-label">
+              <span className="quest-diamond" aria-hidden="true">◇</span>
+              What are you carrying today?
             </p>
-          )}
-        </footer>
+            <nav className="quest-options" aria-label="Emotional journey options">
+              {carryingOptions.map((opt) => (
+                <Link
+                  key={opt.href}
+                  href={session ? opt.href : '/api/auth/signin'}
+                  className="quest-choice"
+                >
+                  <span className="choice-arrow" aria-hidden="true">▶</span>
+                  {opt.label}
+                </Link>
+              ))}
+            </nav>
+          </div>
+
+          {/* Bottom rule + nav */}
+          <div className="panel-rule" aria-hidden="true">
+            <span className="rule-gem">◆</span>
+          </div>
+
+          <div className="panel-foot">
+            {session ? (
+              <>
+                <Link href="/river"   className="foot-link">the river</Link>
+                <span className="foot-sep" aria-hidden="true">·</span>
+                <Link href="/garden"  className="foot-link">my garden</Link>
+                <span className="foot-sep" aria-hidden="true">·</span>
+                <Link href="/matches" className="foot-link">matches</Link>
+              </>
+            ) : (
+              <p className="foot-anon">◈ Anonymous by default · Your name is never shown</p>
+            )}
+          </div>
+        </div>
+
+        {/* Hint text bottom-right */}
+        <p className="world-hint" aria-label="Tip">
+          <span aria-hidden="true">✉</span> tap the letters floating in the river to read them
+        </p>
       </div>
 
       <style>{`
-        .landing {
+        /* ── Root ── */
+        .root {
+          position: relative;
+          min-height: 100vh;
+          overflow: hidden;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #0E1A0A;
+        }
+
+        /* ── UI layer sits above the world ── */
+        .ui-layer {
+          position: relative;
+          z-index: 10;
+          width: 100%;
           min-height: 100vh;
           display: flex;
           align-items: center;
           justify-content: center;
-          position: relative;
-          overflow: hidden;
           padding: 2rem;
-        }
-
-        /* Drifting paper fragment */
-        .paper-drift {
-          position: absolute;
-          top: 8%;
-          right: 5%;
-          width: 200px;
-          padding: 1.5rem;
-          background: white;
-          border: 1px solid var(--mist);
-          border-radius: 2px;
-          box-shadow: 2px 3px 12px rgba(44, 36, 22, 0.06);
-          transform: rotate(3deg);
-          animation: drift 8s ease-in-out infinite;
           pointer-events: none;
         }
 
-        .paper-text {
-          font-family: var(--font-display);
-          font-size: 0.8rem;
-          line-height: 1.7;
-          color: var(--ink-light);
-          font-style: italic;
-        }
-
-        @keyframes drift {
-          0%, 100% { transform: rotate(3deg) translateY(0px); }
-          50% { transform: rotate(3deg) translateY(-10px); }
-        }
-
-        /* Main content */
-        .landing-content {
-          max-width: 520px;
-          width: 100%;
-          display: flex;
-          flex-direction: column;
-          gap: 3.5rem;
+        /* ── Quest panel — game UI frame ── */
+        .quest-panel {
           position: relative;
-          z-index: 1;
-        }
-
-        .landing-header {
+          pointer-events: all;
+          max-width: 420px;
+          width: 100%;
+          background: rgba(8, 12, 6, 0.78);
+          border: 1px solid rgba(180, 155, 80, 0.5);
+          border-radius: 3px;
+          padding: 2.25rem 2rem;
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 1.5rem;
+          box-shadow:
+            0 0 0 1px rgba(180, 155, 80, 0.15),
+            0 0 40px rgba(0,0,0,0.6),
+            inset 0 0 60px rgba(180, 155, 80, 0.04),
+            inset 0 1px 0 rgba(255,240,180,0.08);
+          backdrop-filter: blur(12px);
+          -webkit-backdrop-filter: blur(12px);
         }
 
-        .eyebrow {
+        /* Corner ornaments — game UI flourish */
+        .corner {
+          position: absolute;
+          width: 12px; height: 12px;
+          border-color: rgba(180,155,80,0.7);
+          border-style: solid;
+        }
+        .corner.tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+        .corner.tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+        .corner.bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+        .corner.br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+
+        /* ── Logo ── */
+        .panel-logo {
+          display: flex;
+          justify-content: center;
+        }
+
+        /* ── Decorative rule ── */
+        .panel-rule {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          opacity: 0.45;
+        }
+        .panel-rule::before,
+        .panel-rule::after {
+          content: '';
+          flex: 1;
+          height: 1px;
+          background: linear-gradient(to right, transparent, rgba(180,155,80,0.8), transparent);
+        }
+        .rule-gem {
+          font-size: 0.5rem;
+          color: rgba(180,155,80,0.9);
+          flex-shrink: 0;
+        }
+
+        /* ── Headline ── */
+        .panel-headline {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          text-align: center;
+        }
+        .panel-eyebrow {
           font-family: var(--font-body);
-          font-size: 0.75rem;
+          font-size: 0.65rem;
           letter-spacing: 0.2em;
           text-transform: uppercase;
-          color: var(--rose);
-          font-weight: 500;
+          color: rgba(180,155,80,0.7);
+          margin: 0;
         }
-
-        .headline {
+        .panel-title {
           font-family: var(--font-display);
-          font-size: clamp(2rem, 5vw, 2.75rem);
+          font-size: clamp(1.45rem, 3.5vw, 1.85rem);
           font-weight: 400;
-          line-height: 1.25;
-          color: var(--ink);
+          line-height: 1.35;
+          color: rgba(255,245,215,0.95);
           letter-spacing: -0.01em;
+          margin: 0;
+          text-shadow: 0 2px 20px rgba(180,155,80,0.2);
         }
 
-        .subline {
-          font-family: var(--font-body);
-          font-size: 1rem;
-          color: var(--ink-light);
-          line-height: 1.6;
-          max-width: 380px;
-        }
-
-        /* Carrying section */
-        .carrying-section {
+        /* ── Quest options ── */
+        .panel-quest {
           display: flex;
           flex-direction: column;
-          gap: 1.25rem;
+          gap: 0.85rem;
         }
-
-        .carrying-question {
+        .quest-label {
+          display: flex;
+          align-items: center;
+          gap: 0.5rem;
           font-family: var(--font-display);
-          font-size: 1.05rem;
+          font-size: 0.82rem;
           font-style: italic;
-          color: var(--ink-light);
+          color: rgba(200,185,140,0.8);
+          margin: 0;
+        }
+        .quest-diamond {
+          font-size: 0.55rem;
+          color: rgba(180,155,80,0.7);
+          flex-shrink: 0;
         }
 
-        .carrying-options {
+        .quest-options {
           display: flex;
           flex-direction: column;
-          gap: 0.625rem;
+          gap: 0.3rem;
         }
 
-        .carrying-pill {
-          display: inline-block;
-          padding: 0.75rem 1.25rem;
-          border: 1px solid var(--mist);
-          border-radius: 100px;
-          background: white;
+        .quest-choice {
+          display: flex;
+          align-items: center;
+          gap: 0.65rem;
+          padding: 0.6rem 0.75rem;
+          border: 1px solid transparent;
+          border-radius: 2px;
           font-family: var(--font-body);
-          font-size: 0.9rem;
-          color: var(--ink);
+          font-size: 0.84rem;
+          color: rgba(220,205,165,0.85);
           text-decoration: none;
-          width: fit-content;
-          transition: border-color 0.2s, background 0.2s, transform 0.15s;
+          transition: background 0.18s, border-color 0.18s, color 0.18s, transform 0.15s;
+          position: relative;
+          letter-spacing: 0.01em;
         }
-
-        .carrying-pill:hover {
-          border-color: var(--rose);
-          background: #FDF8F6;
+        .quest-choice:hover {
+          background: rgba(180,155,80,0.10);
+          border-color: rgba(180,155,80,0.35);
+          color: rgba(255,240,190,1);
           transform: translateX(4px);
         }
-
-        /* Footer */
-        .landing-footer {
-          padding-top: 0.5rem;
-          border-top: 1px solid var(--mist);
+        .choice-arrow {
+          font-size: 0.5rem;
+          color: rgba(180,155,80,0.5);
+          transition: color 0.18s, transform 0.18s;
+          flex-shrink: 0;
+        }
+        .quest-choice:hover .choice-arrow {
+          color: rgba(180,155,80,0.9);
+          transform: translateX(2px);
         }
 
-        .footer-link {
+        /* ── Footer ── */
+        .panel-foot {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          gap: 0.6rem;
+          flex-wrap: wrap;
+        }
+        .foot-link {
           font-family: var(--font-body);
-          font-size: 0.875rem;
-          color: var(--sage);
+          font-size: 0.72rem;
+          color: rgba(160,145,100,0.7);
           text-decoration: none;
+          letter-spacing: 0.04em;
+          transition: color 0.15s;
         }
-
-        .footer-link:hover {
-          text-decoration: underline;
+        .foot-link:hover { color: rgba(200,185,140,0.95); }
+        .foot-sep {
+          color: rgba(180,155,80,0.3);
+          font-size: 0.7rem;
         }
-
-        .footer-note {
+        .foot-anon {
           font-family: var(--font-body);
-          font-size: 0.8rem;
-          color: var(--ink-light);
-          opacity: 0.7;
+          font-size: 0.65rem;
+          color: rgba(160,145,100,0.55);
+          text-align: center;
+          letter-spacing: 0.06em;
+          margin: 0;
         }
 
-        /* Mobile */
-        @media (max-width: 640px) {
-          .paper-drift {
-            display: none;
-          }
+        /* ── World hint ── */
+        .world-hint {
+          position: fixed;
+          bottom: 1.5rem;
+          right: 1.75rem;
+          font-family: var(--font-body);
+          font-size: 0.65rem;
+          color: rgba(180,155,80,0.5);
+          letter-spacing: 0.05em;
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          gap: 0.4rem;
+          animation: hint-fade 1s ease 2s both;
+        }
+        @keyframes hint-fade {
+          from { opacity: 0; transform: translateY(4px); }
+          to   { opacity: 1; transform: none; }
+        }
 
-          .landing-content {
-            gap: 2.5rem;
-          }
+        /* ── Panel entrance ── */
+        .quest-panel {
+          animation: panel-enter 0.7s cubic-bezier(0.22,1,0.36,1) both;
+        }
+        @keyframes panel-enter {
+          from { opacity: 0; transform: translateY(12px) scale(0.98); }
+          to   { opacity: 1; transform: none; }
+        }
+
+        /* ── Mobile ── */
+        @media (max-width: 480px) {
+          .ui-layer { padding: 1rem; align-items: flex-end; padding-bottom: 3rem; }
+          .quest-panel { padding: 1.75rem 1.4rem; }
+          .world-hint { display: none; }
         }
       `}</style>
     </main>

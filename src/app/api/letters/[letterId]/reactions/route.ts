@@ -1,10 +1,11 @@
+// FILE: src/app/api/letters/[letterId]/reactions/route.ts
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
 type RouteContext = { params: Promise<{ letterId: string }> }
 
-const ALLOWED = new Set(['understand', 'felt', 'hope'])
+const ALLOWED = new Set(['understand', 'felt', 'hope', 'thanks'])
 
 // GET: /api/letters/[letterId]/reactions  -> counts per reaction type
 export async function GET(req: NextRequest, { params }: RouteContext) {

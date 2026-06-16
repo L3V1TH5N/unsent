@@ -1,7 +1,8 @@
+// FILE: src/app/river/page.tsx
 import Link from 'next/link'
 import ReactionButtons from './ReactionButtons'
+import Nav from '@/components/Nav'
 import { prisma } from '@/lib/prisma'
-import { auth } from '@/lib/auth'
 
 const recipientLabels: Record<string, string> = {
   someone_loved: 'to someone I loved',
@@ -21,8 +22,6 @@ function timeAgo(date: Date) {
 }
 
 export default async function RiverPage() {
-  const session = await auth()
-
   const letters = await prisma.letter.findMany({
     where: { isPublic: true },
     orderBy: { createdAt: 'desc' },
@@ -38,15 +37,7 @@ export default async function RiverPage() {
 
   return (
     <main className="river-page">
-      <nav className="river-nav">
-        <Link href="/" className="nav-logo">unsent</Link>
-        <div className="nav-actions">
-          <Link href="/write" className="nav-write">write a letter</Link>
-          {session && (
-            <Link href="/garden" className="nav-garden">my garden</Link>
-          )}
-        </div>
-      </nav>
+      <Nav />
 
       <div className="river-header">
         <p className="river-eyebrow">the river</p>
@@ -86,51 +77,6 @@ export default async function RiverPage() {
         .river-page {
           min-height: 100vh;
           background: var(--parchment);
-        }
-
-        .river-nav {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 1.25rem 2rem;
-          border-bottom: 1px solid var(--mist);
-          position: sticky;
-          top: 0;
-          background: var(--parchment);
-          z-index: 10;
-        }
-
-        .nav-logo {
-          font-family: var(--font-display);
-          font-size: 1rem;
-          font-style: italic;
-          color: var(--ink);
-          text-decoration: none;
-        }
-
-        .nav-actions {
-          display: flex;
-          gap: 1.5rem;
-          align-items: center;
-        }
-
-        .nav-write, .nav-garden {
-          font-family: var(--font-body);
-          font-size: 0.8rem;
-          color: var(--ink-light);
-          text-decoration: none;
-          transition: color 0.15s;
-        }
-
-        .nav-write:hover, .nav-garden:hover {
-          color: var(--ink);
-        }
-
-        .nav-write {
-          padding: 0.4rem 1rem;
-          border: 1px solid var(--mist);
-          border-radius: 100px;
-          background: white;
         }
 
         .river-header {
@@ -298,7 +244,6 @@ export default async function RiverPage() {
 
         @media (max-width: 640px) {
           .river-feed, .river-header { padding-left: 1rem; padding-right: 1rem; }
-          .river-nav { padding: 1rem; }
         }
       `}</style>
     </main>

@@ -1,12 +1,15 @@
 # File Tree: unsent
 
-**Generated:** 6/15/2026, 12:50:47 PM
+**Generated:** 6/15/2026, 4:54:58 PM
 **Root Path:** `c:\Users\ADMIN\unsent`
 
 ```
 ├── DO-NOT-TOUCH
+│   ├── AGENTS.md
+│   ├── CLAUDE.md
 │   ├── SYSTEM_ANALYSIS.md
 │   ├── Unsent-Prompt.md
+│   ├── WHATS_NEXT.md
 │   ├── current-filetree.md
 │   ├── initial landing page.png
 │   └── snippet
@@ -24,6 +27,9 @@
 │   ├── prisma.config.ts
 │   └── schema.prisma
 ├── public
+│   ├── img
+│   │   ├── Tab-Logo.png
+│   │   └── Unsent-Logo.png
 │   ├── file.svg
 │   ├── globe.svg
 │   ├── next.svg
@@ -46,13 +52,16 @@
 │   │   │   │   │   │   └── route.ts
 │   │   │   │   │   └── route.ts
 │   │   │   │   └── route.ts
-│   │   │   └── matches
-│   │   │       ├── [matchId]
-│   │   │       │   └── messages
-│   │   │       │       └── route.ts
+│   │   │   ├── matches
+│   │   │   │   ├── [matchId]
+│   │   │   │   │   └── messages
+│   │   │   │   │       └── route.ts
+│   │   │   │   └── route.ts
+│   │   │   └── profile
 │   │   │       └── route.ts
 │   │   ├── garden
 │   │   │   ├── GardenClient.tsx
+│   │   │   ├── error.tsx
 │   │   │   └── page.tsx
 │   │   ├── matches
 │   │   │   ├── [matchId]
@@ -60,19 +69,24 @@
 │   │   │   │   └── page.tsx
 │   │   │   ├── MatchCard.tsx
 │   │   │   └── page.tsx
+│   │   ├── profile
+│   │   │   └── page.tsx
 │   │   ├── river
 │   │   │   ├── ReactionButtons.tsx
 │   │   │   └── page.tsx
 │   │   ├── write
 │   │   │   └── page.tsx
+│   │   ├── error.tsx
 │   │   ├── favicon.ico
 │   │   ├── globals.css
 │   │   ├── layout.tsx
 │   │   └── page.tsx
+│   ├── components
+│   │   ├── ErrorState.tsx
+│   │   ├── LandingScene.tsx
+│   │   ├── Logo.tsx
+│   │   └── Nav.tsx
 │   ├── generated
-│   ├── img
-│   │   ├── Tab-Logo.png
-│   │   └── Unsent-Logo.png
 │   ├── lib
 │   │   ├── auth.ts
 │   │   ├── prisma.ts
@@ -80,12 +94,11 @@
 │   ├── services
 │   │   ├── emotion.service.ts
 │   │   ├── garden.service.ts
-│   │   └── match.service.ts
+│   │   ├── match.service.ts
+│   │   └── profile.service.ts
 │   └── types
 │       └── next-auth.d.ts
 ├── .gitignore
-├── AGENTS.md
-├── CLAUDE.md
 ├── README.md
 ├── eslint.config.mjs
 ├── next.config.ts
@@ -93,7 +106,8 @@
 ├── package.json
 ├── postcss.config.mjs
 ├── prisma.config.ts
-└── tsconfig.json
+├── tsconfig.json
+└── vercel.json
 ```
 
 ---

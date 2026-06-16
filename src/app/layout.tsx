@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import { Lora, Inter } from 'next/font/google'
+import { SessionProvider } from 'next-auth/react'
 import './globals.css'
 
 const lora = Lora({
@@ -17,6 +18,9 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: 'Unsent',
   description: 'Some words are too heavy to carry alone.',
+  icons: {
+    icon: '/img/Tab-Logo.png',
+  },
 }
 
 export default function RootLayout({
@@ -26,7 +30,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className={`${lora.variable} ${inter.variable}`}>
-      <body>{children}</body>
+      <body>
+        <SessionProvider>
+          {children}
+        </SessionProvider>
+      </body>
     </html>
   )
 }

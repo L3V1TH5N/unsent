@@ -6,6 +6,7 @@
 // passed down as props — keep this file as the display layer only.
 
 import { Stage } from '@/generated/prisma'
+import { stageProgress } from '@/services/garden.service'
 import Link from 'next/link'
 
 // ─── Types ────────────────────────────────────────────────────────────────
@@ -42,14 +43,6 @@ const STAGE_CONFIG: Record<Stage, {
 }
 
 const STAGE_ORDER: Stage[] = ['SEED', 'SPROUT', 'HEALING', 'BLOOMED', 'STRONG']
-
-// 0.0–1.0 progress toward the NEXT stage
-function stageProgress(count: number, stage: Stage): number {
-  const cfg = STAGE_CONFIG[stage]
-  if (cfg.thresholdNext === null) return 1 // max stage
-  const span = cfg.thresholdNext - cfg.thresholdCurrent
-  return Math.min((count - cfg.thresholdCurrent) / span, 1)
-}
 
 // ─── Progress bar ─────────────────────────────────────────────────────────
 function ProgressBar({ stage, count }: { stage: Stage; count: number }) {
@@ -108,19 +101,23 @@ function StageJourney({ stage }: { stage: Stage }) {
             <div
               title={cfg.label}
               style={{
-                width:        isActive ? '22px' : '8px',
-                height:       '8px',
-                borderRadius: '100px',
-                background:   isActive ? cfg.color : isPast ? cfg.color : '#E0DBD5',
-                opacity:      isFuture ? 0.35 : 1,
-                transition:   'all 0.3s ease',
-                fontSize:     isActive ? '0.6rem' : '0',
-                display:      'flex',
-                alignItems:   'center',
+                width:          isActive ? '28px' : '8px',
+                height:         isActive ? '28px' : '8px',
+                borderRadius:   '100px',
+                background:     isActive ? cfg.bg : isPast ? cfg.color : '#E0DBD5',
+                border:         isActive ? `1.5px solid ${cfg.color}` : 'none',
+                opacity:        isFuture ? 0.35 : 1,
+                transition:     'all 0.3s ease',
+                fontSize:       isActive ? '0.85rem' : '0',
+                display:        'flex',
+                alignItems:     'center',
                 justifyContent: 'center',
-                overflow:     'hidden',
+                overflow:       'hidden',
+                flexShrink:     0,
               }}
-            />
+            >
+              {isActive ? cfg.emoji : null}
+            </div>
             {i < STAGE_ORDER.length - 1 && (
               <div
                 style={{
@@ -346,7 +343,7 @@ export default function GardenClient({ seeds, letterCount }: GardenClientProps) 
     (s) => s.stage === 'BLOOMED' || s.stage === 'STRONG'
   ).length
   const growingCount = seeds.filter(
-    (s) => s.stage === 'SPROUT' || s.stage === 'HEALING'
+    (s) => s.stage === 'SEED' || s.stage === 'SPROUT' || s.stage === 'HEALING'
   ).length
 
   return (
