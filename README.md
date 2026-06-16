@@ -2,7 +2,7 @@ Unsent — anonymous journaling with LLM-driven emotion analysis.
 
 Some words are too heavy to carry alone — Unsent is a reflective journaling platform that lets people write short "unsent" letters. The app analyzes each letter with an LLM to surface emotions, build a personal "garden" of themes, and gently connect people via emotion-based matches.
 
-![alt text](DO-NOT-TOUCH\image.png)
+![alt text](DO-NOT-TOUCH/image.png)
 
 Table of Contents
 - Features
