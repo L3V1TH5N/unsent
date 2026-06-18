@@ -115,7 +115,7 @@ npx prisma migrate dev --name <migration_name>
 - Ensure environment variables are set in Vercel (DB, NextAuth, Anthropic, JOB_SECRET, Pusher).
 - For production job processing, use Vercel Cron or an external scheduler to invoke `/api/jobs/process` with `x-job-secret`.
 
-## File structure (high level)
+## File structure 
 - `src/app` — pages (app router)
 - `src/components` — client components (LandingScene, Nav, etc.)
 - `src/app/api` — API route handlers
@@ -130,16 +130,5 @@ npx prisma migrate dev --name <migration_name>
 - Matching is vector-based: `src/services/match.service.ts` builds per-user emotion vectors and uses cosine similarity to suggest matches.
 - The landing experience favors an ambient WebGL scene to create an emotional tone.
 
-## Contributing
-- PRs welcome. Please open issues for feature requests or bugs.
-- Run `npm run lint` and ensure type checks pass before submitting changes.
 
-## License
-- Add a license (e.g., MIT) if you intend to open-source the project.
-
----
-If you'd like, I can:
-- add a screenshot or demo GIF into the README
-- update `vercel.json` or deployment docs with step-by-step Vercel setup
-- generate a compact GitHub short description for the repository
 
