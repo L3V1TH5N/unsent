@@ -130,5 +130,9 @@ npx prisma migrate dev --name <migration_name>
 - Matching is vector-based: `src/services/match.service.ts` builds per-user emotion vectors and uses cosine similarity to suggest matches.
 - The landing experience favors an ambient WebGL scene to create an emotional tone.
 
+## Contributing
+- PRs welcome. Please open issues for feature requests or bugs.
+- Run `npm run lint` and ensure type checks pass before submitting changes.
 
-
+## License
+- 

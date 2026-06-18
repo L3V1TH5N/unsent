@@ -1,3 +1,4 @@
+// src/app/page.tsx 
 import Link from 'next/link'
 import Image from 'next/image'
 import { auth } from '@/lib/auth'
@@ -12,25 +13,39 @@ const carryingOptions = [
   { label: 'Something I never said',      href: '/write?carrying=unsaid'  },
 ]
 
+// Practical ceiling on how many letters we pull into one page load. The
+// globe's rendering/picking has no cap of its own — every letter passed in
+// gets a real, clickable marker — this number is purely about query size
+// and can be raised (or replaced with pagination) without touching the
+// globe code at all.
+const MAX_GLOBE_LETTERS = 1000
+
 export default async function LandingPage() {
   const session = await auth()
 
-  const letters = await prisma.letter.findMany({
-    where:   { isPublic: true, status: 'ANALYZED' },
-    orderBy: { createdAt: 'desc' },
-    take:    6,
-    select:  { id: true, content: true, recipientType: true, emotion: true, createdAt: true },
-  })
+  const [letters, totalPublicLetters] = await Promise.all([
+    prisma.letter.findMany({
+      where:   { isPublic: true },
+      orderBy: { createdAt: 'desc' },
+      take:    MAX_GLOBE_LETTERS,
+      select:  { id: true, content: true, recipientType: true, emotion: true, createdAt: true },
+    }),
+    prisma.letter.count({ where: { isPublic: true } }),
+  ])
 
   const serialized = letters.map(l => ({ ...l, createdAt: l.createdAt.toISOString() }))
+
+  // Asymptotic: 0 messages → 0 (barren), grows smoothly, never quite hits 1.
+  // No hard cutoff, so the globe keeps "evolving" indefinitely as people write.
+  const greenProgress = totalPublicLetters / (totalPublicLetters + 60)
 
   return (
     <main className="root">
       {/* Deep space background */}
       <div className="space-bg" aria-hidden="true"/>
 
-      {/* 3D Globe + floating letters */}
-      <LandingScene letters={serialized} />
+      {/* 3D Globe + per-letter markers */}
+      <LandingScene letters={serialized} greenProgress={greenProgress} />
 
       {/* UI panel — left side, dark glass */}
       <div className="ui-shell">
@@ -99,7 +114,7 @@ export default async function LandingPage() {
       {/* World hint */}
       <p className="world-hint" aria-label="Tip">
         <span aria-hidden="true">✦</span>
-        Drag the globe · Click glowing letters to read them
+        Drag to rotate · Scroll or pinch to zoom · Tap a light to read
       </p>
 
       <style>{`
