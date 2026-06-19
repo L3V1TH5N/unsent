@@ -127,12 +127,14 @@ export default async function LandingPage() {
           background: #000;
         }
 
-        /* Deep space */
+        /* Deep space — Google Earth style: near-black with subtle galaxy glow */
         .space-bg {
           position: absolute;
           inset: 0;
           background:
-            radial-gradient(ellipse at 70% 50%, #0a1628 0%, #000510 50%, #000 100%);
+            radial-gradient(ellipse 120% 60% at 60% 40%, #0a0d18 0%, #04060f 40%, #000308 70%, #000 100%),
+            radial-gradient(ellipse 80% 40% at 30% 70%, #0d0a18 0%, transparent 60%),
+            radial-gradient(ellipse 60% 30% at 75% 25%, #080d1a 0%, transparent 50%);
           z-index: 0;
         }
 

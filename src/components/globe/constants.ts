@@ -24,7 +24,7 @@ export const RECIPIENT_LABELS: Record<string, string> = {
 // ── Camera / zoom ───────────────────────────────────────────────────────
 export const ZOOM_MIN = 1.55      // closest allowed camera distance
 export const ZOOM_MAX = 4.6       // farthest allowed camera distance
-export const ZOOM_DEFAULT = 2.75  // matches the globe's original fixed distance
+export const ZOOM_DEFAULT = 3.8   // farther out so globe appears smaller on first load
 export const ZOOM_BUTTON_STEP = 0.82 // multiplicative step for the +/- buttons
 
 // ── Marker picking ──────────────────────────────────────────────────────

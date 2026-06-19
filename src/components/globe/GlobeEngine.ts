@@ -3,7 +3,7 @@ import { m4mul, m4rotX, m4rotY, m4trans, m4persp, m3from4, transformPoint, rotat
 import { sphere } from './geometry'
 import { globeVS, globeFS, atmVS, atmFS, markerVS, markerFS, starVS, starFS } from './shaders'
 import { seed, letterPosition, ll2xyz } from './utils'
-import { EMOTION_COLORS, DEFAULT_LETTER_COLOR, ZOOM_MIN, ZOOM_MAX, ZOOM_DEFAULT, PICK_RADIUS_PX } from './constants'
+import { ZOOM_MIN, ZOOM_MAX, ZOOM_DEFAULT, PICK_RADIUS_PX } from './constants'
 import type { PublicLetter } from './types'
 
 interface LetterPoint {
@@ -72,12 +72,37 @@ export class GlobeEngine {
     this.bufs.aIdx = this.ibo(a.idx); this.bufs.aN = a.idx.length
 
     const sp: number[] = [], ss: number[] = [], sph: number[] = []
-    for (let i = 0; i < 300; i++) {
-      sp.push(seed(i*7)*2-1, seed(i*11)*2-1)
-      ss.push(1.0 + seed(i*13)*2.5); sph.push(seed(i*17)*Math.PI*2)
+    // 1200 stars total — Milky Way band + scattered field
+    for (let i = 0; i < 1200; i++) {
+      let sx: number, sy: number, sz: number
+
+      if (i < 500) {
+        // Milky Way band — diagonal strip, bottom-right to top-left
+        const t = (seed(i * 3) * 2 - 1)
+        const spread = (seed(i * 19) - 0.5) * 0.5
+        sx = t * 0.85 + spread * 0.3
+        sy = -t * 0.55 + spread
+        sx = Math.max(-1, Math.min(1, sx))
+        sy = Math.max(-1, Math.min(1, sy))
+        // Milky Way stars: tiny and very dense
+        sz = 0.3 + seed(i * 13) * 0.9
+      } else if (i < 700) {
+        // Brighter foreground stars scattered everywhere
+        sx = seed(i * 7) * 2 - 1
+        sy = seed(i * 11) * 2 - 1
+        sz = 1.2 + seed(i * 13) * 2.0
+      } else {
+        // Medium field stars
+        sx = seed(i * 7) * 2 - 1
+        sy = seed(i * 11) * 2 - 1
+        sz = 0.5 + seed(i * 13) * 1.2
+      }
+      sp.push(sx, sy)
+      ss.push(sz)
+      sph.push(seed(i * 17) * Math.PI * 2)
     }
     this.bufs.sPos = this.vbo(sp); this.bufs.sSz = this.vbo(ss); this.bufs.sPh = this.vbo(sph)
-    this.bufs.sCount = 300
+    this.bufs.sCount = 1200
 
     this.rebuildLetterBuffers(opts.letters)
     this.attachEvents()
@@ -130,20 +155,70 @@ export class GlobeEngine {
   // no cap here: every letter passed in gets a GPU point (cheap, even for
   // thousands) and an entry in `letterPoints` for picking.
   private rebuildLetterBuffers(letters: PublicLetter[]) {
-    const pos: number[] = [], col: number[] = [], sz: number[] = []
+    const pos: number[] = [], sz: number[] = [], mat: number[] = []
     const points: LetterPoint[] = []
+
+    // Inline the same noise/fbm + land mask the shader uses,
+    // so dots only appear on land, never in the ocean.
+    const hh = (px: number, py: number) =>
+      Math.abs(Math.sin(px * 127.1 + py * 311.7) * 43758.5453) % 1
+    const nm = (px: number, py: number) => {
+      const ix = Math.floor(px), iy = Math.floor(py)
+      const fx = px - ix, fy = py - iy
+      const ux = fx * fx * (3 - 2 * fx), uy = fy * fy * (3 - 2 * fy)
+      return (
+        hh(ix, iy) * (1 - ux) * (1 - uy) +
+        hh(ix + 1, iy) * ux * (1 - uy) +
+        hh(ix, iy + 1) * (1 - ux) * uy +
+        hh(ix + 1, iy + 1) * ux * uy
+      )
+    }
+    const fbmL = (px: number, py: number) => {
+      let v = 0, a = 0.5
+      for (let i = 0; i < 5; i++) { v += a * nm(px, py); px *= 2.1; py *= 2.1; a *= 0.5 }
+      return v
+    }
+    const isLand = (u: number, v: number) => {
+      const f = fbmL(u * 4.4 + 1.3, v * 4.4 + 1.3)
+      return f > 0.485 // matches smoothstep(0.43,0.54,...) midpoint
+    }
+
     for (const letter of letters) {
       const { lat, lng, size } = letterPosition(letter.id)
-      const [x, y, z] = ll2xyz(lat, lng, 1.02)
+
+      // Map lat/lng to UV the same way the sphere geometry does
+      const u = (lng / 360 + 0.5)
+      const v = (lat / 180 + 0.5)
+
+      // Skip ocean positions — try up to 8 nearby offsets to find land
+      let finalLat = lat, finalLng = lng
+      if (!isLand(u, v)) {
+        let found = false
+        for (let attempt = 1; attempt <= 8; attempt++) {
+          const offU = u + (seed(letter.id.charCodeAt(0) * attempt + 3) - 0.5) * 0.12
+          const offV = v + (seed(letter.id.charCodeAt(0) * attempt + 7) - 0.5) * 0.12
+          if (isLand(offU, offV)) {
+            finalLat = (offV - 0.5) * 180
+            finalLng = (offU - 0.5) * 360
+            found = true
+            break
+          }
+        }
+        // If no land found nearby, skip this letter's dot
+        if (!found) continue
+      }
+
+      const [x, y, z] = ll2xyz(finalLat, finalLng, 1.02)
       pos.push(x, y, z)
-      const ec = letter.emotion ? EMOTION_COLORS[letter.emotion] : null
-      const c = ec ?? DEFAULT_LETTER_COLOR
-      col.push(c[0]/255, c[1]/255, c[2]/255)
       sz.push(size)
+      const maturity = Math.max(0.18, Math.min(1, (letter.content?.length ?? 0) / 240))
+      mat.push(maturity)
       points.push({ letter, x, y, z })
     }
-    this.bufs.mPos = this.vbo(pos); this.bufs.mCol = this.vbo(col); this.bufs.mSz = this.vbo(sz)
-    this.bufs.mCount = letters.length
+    this.bufs.mPos = this.vbo(pos.length ? pos : [0,0,0])
+    this.bufs.mSz  = this.vbo(sz.length  ? sz  : [0])
+    this.bufs.mMat = this.vbo(mat.length ? mat : [0])
+    this.bufs.mCount = points.length
     this.letterPoints = points
   }
 
@@ -316,10 +391,10 @@ export class GlobeEngine {
     gl.drawElements(gl.TRIANGLES, this.bufs.aN, gl.UNSIGNED_SHORT, 0)
     gl.depthMask(true)
 
-    // Message markers — one point per letter, all of them, every frame.
+    // Message markers — one sprout per letter, all of them, every frame.
     if (this.bufs.mCount > 0) {
       const mp = this.progs.marker; gl.useProgram(mp)
-      attr(mp, 'aPos', this.bufs.mPos, 3); attr(mp, 'aCol', this.bufs.mCol, 3); attr(mp, 'aSz', this.bufs.mSz, 1)
+      attr(mp, 'aPos', this.bufs.mPos, 3); attr(mp, 'aSz', this.bufs.mSz, 1); attr(mp, 'aMat', this.bufs.mMat, 1)
       uni4(mp, 'uMVP', mvp); uni1f(mp, 'uT', this.t)
       gl.drawArrays(gl.POINTS, 0, this.bufs.mCount)
     }

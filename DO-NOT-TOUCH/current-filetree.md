@@ -1,6 +1,6 @@
 # File Tree: unsent
 
-**Generated:** 6/17/2026, 10:15:06 PM
+**Generated:** 6/19/2026, 4:38:33 PM
 **Root Path:** `c:\Users\ADMIN\unsent`
 
 ```
@@ -83,6 +83,18 @@
 │   │   ├── layout.tsx
 │   │   └── page.tsx
 │   ├── components
+│   │   ├── globe
+│   │   │   ├── GlobeEngine.ts
+│   │   │   ├── LetterModal.tsx
+│   │   │   ├── MessageListFallback.tsx
+│   │   │   ├── ZoomControls.tsx
+│   │   │   ├── constants.ts
+│   │   │   ├── geometry.ts
+│   │   │   ├── mat4.ts
+│   │   │   ├── shaders.ts
+│   │   │   ├── types.ts
+│   │   │   ├── useGlobeEngine.ts
+│   │   │   └── utils.ts
 │   │   ├── ErrorState.tsx
 │   │   ├── LandingScene.tsx
 │   │   ├── Logo.tsx
